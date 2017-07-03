@@ -54,7 +54,6 @@ class NoteController {
         
         do {
             let results = try managedContext.fetch(fetchRequest)
-            print(results)
             let currentNote = results.first
             currentNote?.setValue(note.content, forKeyPath: "content")
             
@@ -80,7 +79,7 @@ class NoteController {
         
         do {
             let results = try managedContext.fetch(fetchRequest)
-            
+
             for result in results {
                 let content = result.value(forKey: "content")! as! String
                 let date = result.value(forKey: "dateOfCreation")! as! Date
