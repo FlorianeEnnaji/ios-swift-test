@@ -34,6 +34,7 @@ class NoteDetailViewController : UIViewController, UITextViewDelegate {
         dateOfCreationLabel.text = dateFormatter.string(from: selectedNote!.dateOfCreation)
         
         contentTextView.text = selectedNote?.content
+        contentTextView.becomeFirstResponder()
     }
     
     @IBAction func cancel(_ sender: Any) {
