@@ -25,6 +25,10 @@ class NoteDetailViewController : UIViewController, UITextViewDelegate {
         
         contentTextView.delegate = self
         
+        //Add notifications when keyboard shows up or disappear
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWasShown(notification:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillBeHidden(notification:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        
         let dateFormatter = DateFormatter()
         
         dateFormatter.dateFormat = "MMM d, yyyy - h:mm a"
@@ -37,10 +41,18 @@ class NoteDetailViewController : UIViewController, UITextViewDelegate {
         contentTextView.becomeFirstResponder()
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        //Remove notifications from keyboard
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        
+    }
+    
     @IBAction func cancel(_ sender: Any) {
         performSegue(withIdentifier: "backToListView", sender: self)
     }
-    
     
     @IBAction func saveChanges(_ sender: Any) {
         //Verify that the content is not empty
@@ -60,5 +72,33 @@ class NoteDetailViewController : UIViewController, UITextViewDelegate {
             
             self.present(alertController, animated: true, completion: nil)
         }
+    }
+    
+    @IBAction func deleteNote(_ sender: Any) {
+        //If the content is empty, it means it's a new note
+        if (selectedNote!.content != "") {
+            manager.delete(note: selectedNote!)
+        }
+        performSegue(withIdentifier: "backToListView", sender: self)
+    }
+    
+    func keyboardWasShown(notification: NSNotification){
+        self.contentTextView.isScrollEnabled = true
+        var info = notification.userInfo!
+        let keyboardSize = (info[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue.size
+        let contentInsets : UIEdgeInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize!.height, 0.0)
+        
+        self.contentTextView.contentInset = contentInsets
+        self.contentTextView.scrollIndicatorInsets = contentInsets
+    }
+    
+    func keyboardWillBeHidden(notification: NSNotification){
+        var info = notification.userInfo!
+        let keyboardSize = (info[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue.size
+        let contentInsets : UIEdgeInsets = UIEdgeInsetsMake(0.0, 0.0, -keyboardSize!.height, 0.0)
+        self.contentTextView.contentInset = contentInsets
+        self.contentTextView.scrollIndicatorInsets = contentInsets
+        self.view.endEditing(true)
+        self.contentTextView.isScrollEnabled = false
     }
 }

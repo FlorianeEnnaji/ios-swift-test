@@ -65,6 +65,29 @@ class NoteController {
         
     }
     
+    func delete(note: NoteModel) {
+        guard let appDelegate =
+            UIApplication.shared.delegate as? AppDelegate else {
+                return
+        }
+        
+        let managedContext = appDelegate.persistentContainer.viewContext
+        
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: "Note")
+        fetchRequest.predicate = NSPredicate(format: "dateOfCreation == %@", note.dateOfCreation as CVarArg)
+        
+        do {
+            let results = try managedContext.fetch(fetchRequest)
+            let currentNote = results.first
+            managedContext.delete(currentNote!)
+            
+            try managedContext.save()
+        } catch let error as NSError {
+            print("Could not delete. \(error), \(error.userInfo)")
+        }
+        
+    }
+    
     func getAllNotes() -> [NoteModel] {
         var notes: [NoteModel] = []
         guard let appDelegate =
